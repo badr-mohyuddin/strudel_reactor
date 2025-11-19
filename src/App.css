@@ -1,135 +1,162 @@
-/* .App {
+:root {
+  /* Backgrounds */
+  --bg-main: #1E1E2F;
+  --bg-editor: #252737;
+  --bg-panel: #2A2C3F;
+
+  /* Text */
+  --text-primary: #E6E6FA;
+  --text-secondary: #A0A0B8;
+  --text-comment: #6C6F85;
+
+  /* Accents */
+  --accent: #4DB6AC;
+  --btn-active: #56CCF2;
+  --warning: #FF6B6B;
+
+  /* Controls */
+  --checkbox-bg: #3B3D55;
+  --checkbox-selected: #56CCF2;
+  --slider-track: #4DB6AC;
+  --slider-thumb: #E6E6FA;
+
+  /* Misc */
+  --label-func: #FFD166;
+  --current-line: #32334B;
+  --divider: #3C3F5C;
+}
+
+/* Base */
+body, .demo-container {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  margin: 0;
+  padding: 0;
+}
+
+h2, h5, h6, label, small {
+  color: var(--text-primary);
+  margin: 0.5rem 0;
+}
+
+h2 {
   text-align: center;
+  font-weight: 700;
+  font-size: 2rem;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+/* Cards */
+.glass-card {
+  background-color: var(--bg-panel);
+  border-radius: 1rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  padding: 1rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
 }
 
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.animated-gradient-bg {
-  background: linear-gradient(270deg, #571c86, #1e3989);
-  background-size: 800% 800%;
-  animation: gradientMove 20s ease infinite;
-  min-height: 100vh; /* Full page height */ /*
-}
-
-@keyframes gradientMove {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-} */
-
-/* === Enhanced Strudel Demo UI === */
-
-.demo-container {
-  font-family: 'Inter', sans-serif;
-  color: #f5f8ff;
-}
-
-.glass-card {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 1rem;
-  backdrop-filter: blur(12px);
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.35);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+.glass-card.collapsed-card {
+  padding-bottom: 0 !important;
 }
 
 .glass-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 0 25px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
 }
 
+/* Editor */
 .editor-box {
-  min-height: 300px;
-  border-radius: 0.75rem;
-  background: #101010;
-  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.4);
-  padding: 8px;
+  min-height: 250px;
+  background-color: var(--bg-editor);
+  border: 1px solid var(--divider);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
   overflow-y: auto;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+/* D3 Piano Roll */
+#d3-roll {
+  background-color: var(--bg-editor);
+  border-radius: 0.5rem;
+  width: 100%;
+  height: 100%;
+  flex: 1;
 }
 
 /* Buttons */
-.btn-outline-primary {
-  border-color: #4df0ff;
-  color: #4df0ff;
-  transition: all 0.2s ease;
+.btn-play {
+  background-color: #22C55E;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+}
+.btn-play:hover { background-color: #16A34A; }
+
+.btn-stop {
+  background-color: #EF4444;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+}
+.btn-stop:hover { background-color: #DC2626; }
+
+/* Checkbox & Radio */
+input[type="checkbox"], input[type="radio"] {
+  accent-color: var(--checkbox-selected);
 }
 
-.btn-outline-primary:hover {
-  background-color: #4df0ff;
-  color: #0b0b0b;
-  box-shadow: 0 0 10px #4df0ff;
+/* Sliders */
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  background: var(--slider-track);
+  border-radius: 3px;
 }
 
-/* Group Buttons Neatly */
-.btn-group .btn {
-  margin-right: 0.5rem;
+/* Accordion Animation */
+.accordion-content {
+  overflow: hidden;
+  transition: max-height 0.35s ease;
+  max-height: 5000px;
 }
 
-/* Labels and Text */
-label, h5 {
-  color: #b8d6ff;
+.accordion-content.collapsed {
+  max-height: 0 !important;
 }
 
-textarea.form-control {
-  background-color: #111;
-  color: #e6f7ff;
-  border: 1px solid #333;
-  border-radius: 0.75rem;
-  font-family: monospace;
-  resize: none;
+/* Fix bottom editor white bar */
+.editor-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: auto;
 }
 
-textarea.form-control:focus {
-  border-color: #4df0ff;
-  box-shadow: 0 0 8px #4df0ff50;
-  outline: none;
+.editor-wrapper.collapsed {
+  padding-bottom: 0 !important;
 }
 
-/* Radio controls */
-.form-check-input:checked {
-  background-color: #4df0ff;
-  border-color: #4df0ff;
+/* Top row equal-height when expanded */
+.top-row-flex {
+  display: flex;
+  gap: 1rem;
+  align-items: stretch;
 }
 
-.divider {
-  border-top: 1px solid rgba(255,255,255,0.2);
+.top-row-flex > .col-md-8,
+.top-row-flex > .col-md-4 {
+  display: flex;
+  flex-direction: column;
 }
 
-/* Fancy text glow */
+/* Misc */
 .text-glow {
-  text-shadow: 0 0 10px #4df0ff, 0 0 20px #4df0ff80;
+  text-shadow: 0 0 4px var(--accent), 0 0 8px var(--btn-active);
 }
-

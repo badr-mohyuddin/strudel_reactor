@@ -1,38 +1,39 @@
-// src/components/ControlsPanel.jsx
 import { useState } from "react";
 import InstrumentsTab from "./InstrumentsTab";
 import MasterVolume from "./MasterVolume";
 import SpeedControl from "./SpeedControl";
 
-const speeds = [0.5, 1, 1.5, 2];
+export default function ControlsPanel({
+  instruments, setInstruments,
+  volume, onVolume,
+  speed, onSpeed,
+  speedOptions, setSpeedOptions,
+  disabled
+}) {
+  const [showInstruments, setShowInstruments] = useState(true);
 
-export default function ControlsPanel(props) {
-    const [showInstruments, setShowInstruments] = useState(true);
+  return (
+    <aside className={`cp-card p-3 ${disabled ? 'cp-disabled' : ''}`}>
+      <h5 className="cp-title m-0">Controls Panel</h5>
+      <small>Real-time control over the Strudel REPL</small>
 
-    return (
-        <aside className={`cp-card p-3 ${props.disabled ? 'cp-disabled' : ''}`}>
-            <h5 className="cp-title m-0">Controls Panel</h5>
-            <small>Real-time control over the Strudel REPL</small>
+      <div className="row g-2 mt-3">
+        {/* Left: Instruments */}
+        <div className="col-6">
+          <InstrumentsTab instruments={instruments} setInstruments={setInstruments} />
+        </div>
 
-            {/* Accordion Header */}
-            <div
-                className="accordion-header d-flex justify-content-between align-items-center mt-3 mb-2"
-                onClick={() => setShowInstruments(prev => !prev)}
-                style={{ cursor: "pointer" }}
-            >
-                <strong>Instruments</strong>
-                <span>{showInstruments ? "▲" : "▼"}</span>
-            </div>
-
-            {/* Accordion Content */}
-            {showInstruments && (
-                <div className="accordion-body">
-                    <InstrumentsTab />
-                </div>
-            )}
-
-            <MasterVolume volume={props.volume} onVolume={props.onVolume} />
-            <SpeedControl speed={props.speed} onSpeed={props.onSpeed} speeds={speeds} />
-        </aside>
-    );
+        {/* Right: Volume + Speed */}
+        <div className="col-6 d-flex flex-column gap-3">
+          <MasterVolume volume={volume} onVolume={onVolume} />
+          <SpeedControl
+            speed={speed}
+            onSpeed={onSpeed}
+            speeds={speedOptions}
+            setSpeeds={setSpeedOptions}
+          />
+        </div>
+      </div>
+    </aside>
+  );
 }

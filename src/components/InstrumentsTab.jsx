@@ -1,32 +1,56 @@
-// src/components/tabs/InstrumentsTab.jsx
-export default function InstrumentsTab({ melodyOn, onMelody, drumsOn, onDrums, chordsOn, onChords, bassOn, onBass, extraOn, onExtra }) {
-    const instruments = [
-        { id: "melody", label: "Melody (Kalimba / Guitar)", checked: melodyOn, onChange: onMelody },
-        { id: "drums", label: "Drums", checked: drumsOn, onChange: onDrums },
-        { id: "chords", label: "Chords (E-Piano)", checked: chordsOn, onChange: onChords },
-        { id: "bass", label: "Bass", checked: bassOn, onChange: onBass },
-        { id: "extra", label: "Extra (Organ + Arp)", checked: extraOn, onChange: onExtra },
-    ];
+import { useState } from "react";
 
-    return (
-        <section className="cp-pattern mb-3">
-            <h6 className="mb-2">Instruments</h6>
-            <div className="d-grid gap-2">
-                {instruments.map(({ id, label, checked, onChange }) => (
-                    <label key={id} className="cp-toggle-row">
-                        <span className="cp-toggle-label">{label}</span>
-                        <input
-                            id={`ins-${id}`}
-                            type="checkbox"
-                            className="cp-toggle-input"
-                            checked={!!checked}
-                            onChange={(e) => onChange?.(e.target.checked)}
-                            aria-label={`${label} ${checked ? "on" : "off"}`}
-                        />
-                        <span className="cp-toggle-switch" aria-hidden />
-                    </label>
-                ))}
-            </div>
-        </section>
+export default function InstrumentsTab({ instruments, setInstruments }) {
+  const [newInstrumentName, setNewInstrumentName] = useState("");
+
+  const toggleInstrument = (id, value) => {
+    setInstruments(prev =>
+      prev.map(ins => ins.id === id ? { ...ins, enabled: value } : ins)
     );
+  };
+
+  const addInstrument = () => {
+    const trimmedName = newInstrumentName.trim();
+    if (!trimmedName) return;
+    setInstruments(prev => [...prev, { id: trimmedName, label: trimmedName, enabled: true }]);
+    setNewInstrumentName("");
+  };
+
+  return (
+    <section className="cp-pattern mb-3">
+      <h6 className="mb-2">Instruments</h6>
+
+      {/* Two-column grid for instruments */}
+      <div className="row g-2">
+        {instruments.map(({ id, label, enabled }) => (
+          <div className="col-6" key={id}>
+            <label className="d-flex align-items-center">
+              <input
+                type="checkbox"
+                checked={enabled}
+                onChange={(e) => toggleInstrument(id, e.target.checked)}
+                className="me-2"
+              />
+              {label}
+            </label>
+          </div>
+        ))}
+      </div>
+
+      {/* Add new instrument */}
+      <div className="d-flex gap-2 mt-2">
+        <input
+          type="text"
+          className="form-control form-control-sm"
+          placeholder="New instrument"
+          value={newInstrumentName}
+          onChange={(e) => setNewInstrumentName(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && addInstrument()}
+        />
+        <button type="button" className="btn btn-sm btn-outline-light" onClick={addInstrument}>
+          + Add
+        </button>
+      </div>
+    </section>
+  );
 }

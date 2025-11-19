@@ -1,68 +1,43 @@
-// src/components/controls/SpeedControl.jsx
 import { useState } from "react";
 
-export default function SpeedControl({ speed, onSpeed, speeds }) {
-    const [customValue, setCustomValue] = useState("");
+export default function SpeedControl({ speed, onSpeed, speeds, setSpeeds }) {
+  const [newSpeed, setNewSpeed] = useState("");
 
-    const handleCustomChange = (e) => {
-        const value = Number(e.target.value);
-        setCustomValue(e.target.value);
+  const addSpeed = () => {
+    const val = parseFloat(newSpeed);
+    if (!isNaN(val) && !speeds.includes(val)) {
+      setSpeeds(prev => [...prev, val].sort((a,b)=>a-b));
+      setNewSpeed("");
+    }
+  };
 
-        if (!isNaN(value)) {
-            onSpeed(value);      // set speed
-        }
-    };
+  return (
+    <section className="cp-pattern mb-3">
+      <h6 className="mb-2">Speed</h6>
 
-    const isRadioSelected = speeds.includes(speed);
+      <select
+        className="form-select mb-2"
+        value={speed}
+        onChange={(e) => onSpeed(parseFloat(e.target.value))}
+      >
+        {speeds.map((s) => <option key={s} value={s}>{s}x</option>)}
+      </select>
 
-    return (
-        <div className="mb-1 speed-block">
-            <label className="m-0 fw-semibold d-block mb-2">Speed Multiplier</label>
-
-            <div className="speed-toggle" role="group" aria-label="Speed Multiplier">
-                {speeds.map(v => {
-                    const id = `speed-${String(v).replace('.', '-')}`;
-                    return (
-                        <div key={v} className="speed-item">
-                            <input
-                                id={id}
-                                type="radio"
-                                name="speed"
-                                value={v}
-                                checked={isRadioSelected && speed === v}
-                                onChange={() => {
-                                    setCustomValue("");   // clear custom input
-                                    onSpeed(v);
-                                }}
-                                className="vh-radio"
-                            />
-                            <label
-                                htmlFor={id}
-                                className={`btn btn-speed ${isRadioSelected && speed === v ? 'active' : ''}`}
-                            >
-                                {v}
-                            </label>
-                        </div>
-                    );
-                })}
-
-                {/* --- Custom Input --- */}
-                <div className="speed-item ms-2">
-                    <input
-                        type="number"
-                        step="0.01"
-                        placeholder="Custom"
-                        className="form-control"
-                        value={customValue}
-                        onChange={handleCustomChange}
-                        onFocus={() => {
-                            // deselect radio buttons when typing
-                            if (isRadioSelected) onSpeed(Number(customValue) || 1);
-                        }}
-                        style={{ width: "100px" }}
-                    />
-                </div>
-            </div>
-        </div>
-    );
+      <div className="d-flex gap-2">
+        <input
+          type="number"
+          min="0.1"
+          step="0.1"
+          className="form-control form-control-sm"
+          placeholder="Add speed"
+          value={newSpeed}
+          onChange={(e) => setNewSpeed(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && addSpeed()}
+        />
+        <button type="button" className="btn btn-sm btn-outline-light" onClick={addSpeed}>
+          + Add
+        </button>
+      </div>
+    </section>
+  );
 }

@@ -10,10 +10,10 @@ import { transpiler } from '@strudel/transpiler';
 import { stranger_tune } from './tunes';
 import console_monkey_patch from './console-monkey-patch';
 import { drawD3Haps } from './components/d3PianoRoll.js';
-import ControlsPanel from './components/ControlsPanel';
+import InstrumentsTab from './components/InstrumentsTab';
+import SpeedControl from './components/SpeedControl';
+import StrudelFileManager from './components/StrudelFileManager';
 import PreprocessTextArea from './components/PreprocessTextarea';
-import ProcButtons from './components/ProcButtons';
-import PlayButton from './components/PlayButton';
 import { Preprocess } from './utils/PreprocessLogic';
 
 let globalEditor = null;
@@ -21,75 +21,47 @@ let globalEditor = null;
 export default function StrudelDemo() {
   const hasRun = useRef(false);
 
-  // --- States ---
   const [procText, setProcText] = useState(stranger_tune);
-
   const [volume, setVolume] = useState(0.5);
   const [speed, setSpeed] = useState(1);
+  const [instruments, setInstruments] = useState([
+    { id: "main_arp", label: "main_arp", enabled: true },
+    { id: "bassline", label: "bassline", enabled: true },
+    { id: "drums", label: "drums", enabled: true },
+    { id: "drums2", label: "drums2", enabled: true },
+  ]);
+  const [speedOptions, setSpeedOptions] = useState([0.5, 1, 1.5, 2]);
+  const [state, setState] = useState("stop"); // stop | play
 
-  const [melodyOn, setMelodyOn] = useState(true);
-  const [drumsOn, setDrumsOn] = useState(true);
-  const [chordsOn, setChordsOn] = useState(true);
-  const [bassOn, setBassOn] = useState(true);
-  const [extraOn, setExtraOn] = useState(true);
+  // Accordion state
+  const [accordionState, setAccordionState] = useState({
+    pianoRoll: true,
+    controls: true,
+    preprocessing: true,
+    editor: true
+  });
 
-  const [space, setSpace] = useState(0.3);
-  const [bright, setBright] = useState(0.5);
-  const [width, setWidth] = useState(0.5);
-  const [chordLen, setChordLen] = useState(0.7);
-
-  const [drumKit, setDrumKit] = useState(0);
-  const [melodyStyle, setMelodyStyle] = useState(0);
-  const [section, setSection] = useState(0);
-
-  // --- Preprocessing / Proc ---
-  const Proc = (doPlay = false) => {
-    if (!globalEditor) return;
-
-    const tune = Preprocess({
-      inputText: procText || stranger_tune,
-      volume,
-      speed,
-      melodyOn,
-      drumsOn,
-      chordsOn,
-      bassOn,
-      extraOn,
-      space,
-      bright,
-      width,
-      chordLen,
-      drumKit,
-      melodyStyle,
-      section
-    });
-
-    if (!tune || !tune.trim()) {
-      console.warn("No code to evaluate — tune is empty");
-      return;
-    }
-
-    // Update editor
-    globalEditor.setCode(tune);
-
-    // Live updates
-    globalEditor.setVolume?.(volume);
-    globalEditor.setFX?.({ space, bright, width, chordLen });
-    globalEditor.setInstrumentEnabled?.('melody', melodyOn);
-    globalEditor.setInstrumentEnabled?.('drums', drumsOn);
-    globalEditor.setInstrumentEnabled?.('chords', chordsOn);
-    globalEditor.setInstrumentEnabled?.('bass', bassOn);
-    globalEditor.setInstrumentEnabled?.('extra', extraOn);
-    globalEditor.setDrumKit?.(drumKit);
-    globalEditor.setMelodyStyle?.(melodyStyle);
-    globalEditor.setSection?.(section);
-
-    if (doPlay) globalEditor.evaluate();
+  const toggleAccordion = (key) => {
+    setAccordionState(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const procAndPlay = () => Proc(true);
+  const getProcessedTune = () => Preprocess({ inputText: procText, volume, speed, instruments });
 
-  // --- Initialize StrudelMirror editor ---
+  const playTune = async () => {
+    if (!globalEditor) return;
+    await initAudioOnFirstClick();
+    setState("play");
+    const tune = getProcessedTune();
+    globalEditor.stop?.();
+    globalEditor.setCode(tune);
+    globalEditor.evaluate();
+  };
+
+  const stopTune = () => {
+    globalEditor?.stop();
+    setState("stop");
+  };
+
   useEffect(() => {
     if (hasRun.current) return;
     hasRun.current = true;
@@ -106,11 +78,11 @@ export default function StrudelDemo() {
           drawD3Haps(haps, time, [-2, 2], {
             svgId: '#d3-roll',
             noteHeight: 12,
-            neonMelodic: '#4DF0FF',
-            neonDrum: '#FF7B3A',
-            bg: '#05040a',
-            gridColor: '#0f0f12',
-            labelColor: '#e6f7ff',
+            neonMelodic: '#00FFC3',
+            neonDrum: '#3CB6B6',
+            bg: '#0B0C10',
+            gridColor: '#1A2B3C',
+            labelColor: '#E0F7FA',
             showLabels: true
           });
         } catch (err) {
@@ -118,7 +90,7 @@ export default function StrudelDemo() {
         }
       },
       prebake: async () => {
-        initAudioOnFirstClick();
+        await initAudioOnFirstClick();
         const loadModules = evalScope(
           import('@strudel/core'),
           import('@strudel/draw'),
@@ -130,78 +102,136 @@ export default function StrudelDemo() {
       }
     });
 
-    // Load initial tune
-    Proc();
+    globalEditor.setCode(getProcessedTune());
   }, []);
 
-  // --- Live parameter updates ---
+  useEffect(() => {
+    if (state === "play" && globalEditor) {
+      const tune = getProcessedTune();
+      globalEditor.stop?.();
+      globalEditor.setCode(tune);
+      globalEditor.evaluate();
+    }
+  }, [volume, speed, instruments, state]);
+
   useEffect(() => {
     if (!globalEditor) return;
-    Proc(); // update editor whenever any control changes
-  }, [
-    procText,
-    volume, speed,
-    melodyOn, drumsOn, chordsOn, bassOn, extraOn,
-    space, bright, width, chordLen,
-    drumKit, melodyStyle, section
-  ]);
+    const tune = getProcessedTune();
+    globalEditor.setCode(tune);
+  }, [procText]);
 
   return (
-    <div className="demo-container animated-gradient-bg text-light py-4 px-3">
+    <div className="demo-container py-4 px-3">
       <h2 className="text-center mb-4 fw-bold text-glow">🎛️ Strudel Demo Workstation</h2>
       <main className="container-fluid">
-        <div className="row mb-4">
-          {/* Preprocessing */}
-          <div className="col-md-8">
-            <div className="glass-card p-3 mb-3">
-              <h5 className="fw-semibold mb-2">Preprocessing</h5>
-              <PreprocessTextArea value={procText} onChange={setProcText} />
+
+        {/* Top row: Piano Roll + Controls */}
+        <div className="row mb-3 accordion-row" style={{ alignItems: 'flex-start' }}>
+          {/* Piano Roll Card */}
+          <div className="col-md-8 mb-2">
+            <div className="glass-card">
+              <h5 className="fw-semibold mb-2 accordion-header" onClick={() => toggleAccordion("pianoRoll")}>
+                Piano Roll Visualizer {accordionState.pianoRoll ? '▲' : '▼'}
+              </h5>
+              <div
+                className={`accordion-content ${accordionState.pianoRoll ? '' : 'collapsed'}`}
+                style={{
+                  transition: 'max-height 0.4s ease, padding 0.4s ease',
+                  overflow: 'hidden',
+                  padding: accordionState.pianoRoll ? '1rem' : '0'
+                }}
+              >
+                <svg id="d3-roll" className="w-100 rounded shadow-sm" style={{ height: '300px' }} />
+              </div>
             </div>
           </div>
-          {/* Controls Panel */}
-          <div className="col-md-4">
-            <div className="glass-card p-3">
-              <h5 className="fw-semibold mb-3">Controls</h5>
-              <ControlsPanel
-                disabled={false}
-                volume={volume} onVolume={setVolume}
-                speed={speed} onSpeed={setSpeed}
-                melodyOn={melodyOn} onMelody={setMelodyOn}
-                drumsOn={drumsOn} onDrums={setDrumsOn}
-                chordsOn={chordsOn} onChords={setChordsOn}
-                bassOn={bassOn} onBass={setBassOn}
-                extraOn={extraOn} onExtra={setExtraOn}
-                space={space} onSpace={setSpace}
-                bright={bright} onBright={setBright}
-                width={width} onWidth={setWidth}
-                chordLen={chordLen} onChordLen={setChordLen}
-                drumKit={drumKit} onDrumKit={setDrumKit}
-                melodyStyle={melodyStyle} onMelodyStyle={setMelodyStyle}
-                section={section} onSection={setSection}
-              />
-              <hr className="divider" />
-              <ProcButtons proc={Proc} procAndPlay={procAndPlay} />
-              <PlayButton
-                evaluate={() => { initAudioOnFirstClick(); globalEditor?.evaluate(); }}
-                stop={() => globalEditor?.stop()}
-              />
+
+          {/* Controls Card */}
+          <div className="col-md-4 mb-2">
+            <div className="glass-card">
+              <h5 className="fw-semibold mb-3 accordion-header" onClick={() => toggleAccordion("controls")}>
+                Controls {accordionState.controls ? '▲' : '▼'}
+              </h5>
+              <div
+                className={`accordion-content ${accordionState.controls ? '' : 'collapsed'}`}
+                style={{
+                  transition: 'max-height 0.4s ease, padding 0.4s ease',
+                  overflow: 'hidden',
+                  padding: accordionState.controls ? '1rem' : '0'
+                }}
+              >
+                <div className="row g-2 mb-3">
+                  <div className="col-6">
+                    <InstrumentsTab instruments={instruments} setInstruments={setInstruments} />
+                  </div>
+                  <div className="col-6 d-flex flex-column gap-2">
+                    <div>
+                      <label className="form-label">Volume</label>
+                      <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                        value={volume}
+                        onChange={(e) => setVolume(parseFloat(e.target.value))}
+                        className="form-range"
+                      />
+                    </div>
+                    <SpeedControl
+                      speed={speed}
+                      onSpeed={setSpeed}
+                      speeds={speedOptions}
+                      setSpeeds={setSpeedOptions}
+                    />
+                  </div>
+                </div>
+                <div className="d-flex gap-2">
+                  <button className="btn-play flex-1" onClick={playTune}>Play</button>
+                  <button className="btn-stop flex-1" onClick={stopTune}>Stop</button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Editor + Piano Roll */}
-        <div className="row">
-          <div className="col-md-8">
-            <div className="glass-card p-3 mb-3">
-              <h5 className="fw-semibold mb-2">Code Editor</h5>
-              <div id="editor" className="editor-box mb-3" />
-              <div id="output" />
+        {/* Bottom row: Preprocessing + Editor */}
+        <div className="row mb-4 accordion-row" style={{ alignItems: 'flex-start' }}>
+          {/* Preprocessing Card */}
+          <div className="col-md-6 mb-2">
+            <div className="glass-card">
+              <h5 className="fw-semibold mb-2 accordion-header" onClick={() => toggleAccordion("preprocessing")}>
+                Preprocessing {accordionState.preprocessing ? '▲' : '▼'}
+              </h5>
+              <div
+                className={`accordion-content ${accordionState.preprocessing ? '' : 'collapsed'}`}
+                style={{
+                  transition: 'max-height 0.4s ease, padding 0.4s ease',
+                  overflow: 'hidden',
+                  padding: accordionState.preprocessing ? '1rem' : '0'
+                }}
+              >
+                <StrudelFileManager code={procText} onLoad={setProcText} />
+                <PreprocessTextArea value={procText} onChange={setProcText} />
+              </div>
             </div>
           </div>
-          <div className="col-md-4">
-            <div className="glass-card p-3">
-              <h5 className="fw-semibold mb-2">Piano Roll Visualizer</h5>
-              <svg id="d3-roll" className="w-100 rounded shadow-sm" style={{ height: '400px' }} />
+
+          {/* Code Editor Card */}
+          <div className="col-md-6 mb-2">
+            <div className="glass-card">
+              <h5 className="fw-semibold mb-2 accordion-header" onClick={() => toggleAccordion("editor")}>
+                Code Editor {accordionState.editor ? '▲' : '▼'}
+              </h5>
+              <div
+                className={`accordion-content ${accordionState.editor ? '' : 'collapsed'}`}
+                style={{
+                  transition: 'max-height 0.4s ease, padding 0.4s ease',
+                  overflow: 'hidden',
+                  padding: accordionState.editor ? '1rem' : '0'
+                }}
+              >
+                <div id="editor" className="editor-box" />
+              </div>
             </div>
           </div>
         </div>
