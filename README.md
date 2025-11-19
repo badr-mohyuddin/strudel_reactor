@@ -2,12 +2,12 @@
 To load a file, click "Load.json" or press ctrl + O. To save a file, click "Save .json" or press ctrl + s.
 
 # Controls
-*To deselect an instrument, click on the instrument and click play. 
-*To add an instrument that you would like to deselect, type the name and click add or press enter. Then deselect it and play. 
-*To asjust the volume, slide the volume bar. 
-*To adjust the speed, choose a speed setting from the dropdown list. To add a speed, write the speed in the text box and click add or press enter.
+* To deselect an instrument, click on the instrument and click play. 
+* To add an instrument that you would like to deselect, type the name and click add or press enter. Then deselect it and play. 
+* To asjust the volume, slide the volume bar. 
+* To adjust the speed, choose a speed setting from the dropdown list. To add a speed, write the speed in the text box and click add or press enter.
 
-#AI Usage.
+# AI Usage.
 Input: Improve the layout of the app.js file
 Output: App.js
 
