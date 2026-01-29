@@ -1,0 +1,19 @@
+{
+  "files": {
+    "main.css": "/strudel_reactor/static/css/main.f22dfb85.css",
+    "main.js": "/strudel_reactor/static/js/main.2cc6b366.js",
+    "static/js/985.cf07ddf4.chunk.js": "/strudel_reactor/static/js/985.cf07ddf4.chunk.js",
+    "static/js/453.4084ef31.chunk.js": "/strudel_reactor/static/js/453.4084ef31.chunk.js",
+    "static/media/index.mjs": "/strudel_reactor/static/media/index.7b76d54bbd4583b49ae5.mjs",
+    "static/media/clockworker-ZDiUtESR.js": "/strudel_reactor/static/media/clockworker-ZDiUtESR.e38e2c728b2a862e0123.js",
+    "index.html": "/strudel_reactor/index.html",
+    "main.f22dfb85.css.map": "/strudel_reactor/static/css/main.f22dfb85.css.map",
+    "main.2cc6b366.js.map": "/strudel_reactor/static/js/main.2cc6b366.js.map",
+    "985.cf07ddf4.chunk.js.map": "/strudel_reactor/static/js/985.cf07ddf4.chunk.js.map",
+    "453.4084ef31.chunk.js.map": "/strudel_reactor/static/js/453.4084ef31.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.f22dfb85.css",
+    "static/js/main.2cc6b366.js"
+  ]
+}
